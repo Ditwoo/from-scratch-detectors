@@ -71,7 +71,7 @@ def valid_fn(loader, model, device, criterion, verbose=True):
             locs, confs = model(imgs)
 
             regression_loss, classification_loss = criterion(locs, boxes, confs, classes)
-            loss = regression_loss + classification_loss
+            loss = 10 * regression_loss + classification_loss
 
             _rloss = regression_loss.item()
             _closs = classification_loss.item()
@@ -151,10 +151,11 @@ def experiment(device, args=None):
 
     model_config = args["model"]
     num_classes = model_config["num_classes"] + 1  # +1 for background class
+    seed_all(42)
     model = SSD300(model_config["backbone"], num_classes)
     model = model.to(device)
-    #     optimizer = optim.Adam(model.parameters(), lr=1e-3)
-    optimizer = optim.SGD(model.parameters(), lr=2.6e-3, momentum=0.9, weight_decay=0.0005)
+    optimizer = optim.AdamW(model.parameters(), lr=1e-3 / 2)
+    # optimizer = optim.SGD(model.parameters(), lr=2.6e-3, momentum=0.9, weight_decay=0.0005)
     epoch_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, args["experiment"]["num_epochs"])
     batch_scheduler = None
     criterion = Loss(num_classes)
@@ -195,7 +196,7 @@ def main():
             "num_classes": 81,
         },
         "experiment": {
-            "num_epochs": 50,
+            "num_epochs": 500,
             "onnx": "ssd300.onnx",
         },
     }

@@ -94,7 +94,7 @@ class COCOFileDataset(Dataset):
         )
         txt = txt.format(
             len(self.images),
-            len(self.class_to_cid),
+            len(self.categories),
             "not specified" if self.background_id is None else self.background_id,
             self.background_cls,
             sorted(self.categories),
@@ -117,8 +117,16 @@ class COCOFileDataset(Dataset):
         return image
 
     @staticmethod
-    def _from_pixels_to_pcnt(box, height, width):
-        return [box[0] / height, box[1] / width, (box[0] + box[2]) / height, (box[1] + box[3]) / width]
+    def _from_pixels_to_pcnt(box, width, height):
+        x, y, w, h = box
+        # fmt: off
+        return [
+            x / width,
+            y / height,
+            (x + w) / width,
+            (y + h) / height
+        ]
+        # fmt: on
 
     def __getitem__(self, index):
         img_id = self.images_list[index]
@@ -136,11 +144,11 @@ class COCOFileDataset(Dataset):
                 img_record["width"],
                 img_record["height"],
             )
-            # assert all(0 <= num <= 1 for num in xyxy), f"All numbers should be in range [0, 1], but got {xyxy}!"
+            assert all(0 <= num <= 1 for num in xyxy), f"All numbers should be in range [0, 1], but got {xyxy}!"
             bbox_class = str(self.cid_to_class[annotation["category_id"]])
             boxes.append(xyxy + [str(bbox_class)])
 
-        if self.transforms:
+        if self.transforms is not None:
             transformed = self.transforms(image=image, bboxes=boxes)
             image, boxes = transformed["image"], transformed["bboxes"]
 
