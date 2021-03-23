@@ -127,6 +127,16 @@ class SSD300(nn.Module):
         return locs, confs
 
     def forward(self, x):
+        """
+
+        Args:
+            x (torch.Tensor): batch of data,
+                expected shapes [B, 3, 300, 300]
+
+        Returns:
+            bbox locations (torch.Tensor) with shapes [B, 8732, 4] (values in range [0,1])
+            class confidence logits (torch.Tensor) with shapes [B, N_CLASSES]
+        """
         x = self.feature_extractor(x)
 
         detection_feed = [x]
@@ -138,7 +148,7 @@ class SSD300(nn.Module):
         locs, confs = self.bbox_view(detection_feed, self.loc, self.conf)
 
         # For SSD 300, shall return nbatch x 8732 x {nlabels, nlocs} results
-        return locs, confs
+        return torch.sigmoid(locs), confs
 
 
 class Loss(nn.Module):

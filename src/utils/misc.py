@@ -63,7 +63,7 @@ def get_logger(name, log_file=None, log_level=logging.INFO):
     return logger
 
 
-def export_to_onnx(model, input_example, file):
+def export_to_onnx(model, input_example, file, opset_version=10):
     """Export pytorch model to ONNX file.
 
     Args:
@@ -76,7 +76,7 @@ def export_to_onnx(model, input_example, file):
         input_example,
         file,
         export_params=True,
-        opset_version=10,
+        opset_version=opset_version,
         do_constant_folding=True,
         input_names=["input"],
         output_names=["locs", "confs"],
